@@ -22,7 +22,7 @@ cd cricket-player-predictor
 
 2. Install required dependencies:
 ```bash
-pip install -r requirements.txt
+pip install streamlit pandas numpy scikit-learn streamlit-lottie
 ```
 
 3. Place your dataset file (`newplayer.csv`) in the project directory
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 1. Run the application:
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 2. Open your browser and navigate to the local URL provided (typically http://localhost:8501)
