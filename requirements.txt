@@ -1,7 +1,7 @@
 streamlit
-scikit-learn
 pandas
 numpy
+scikit-learn
+streamlit-lottie
 matplotlib
 seaborn
-streamlit-lottie
