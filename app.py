@@ -14,82 +14,198 @@ def load_lottiefile(filepath: str):
 lottie_animation = load_lottiefile("Animation.json")
 
 # --- Page Config ---
-st.set_page_config(page_title="🏏 Cricket Player Run Predictor", layout="wide")
+st.set_page_config(
+    page_title="🏏 Cricket Player Run Predictor", 
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-# --- Custom Style ---
+# --- Custom Responsive Style ---
 st.markdown("""
     <style>
+    /* Base styles for all devices */
     body {
         background-color: #0e1117;
         color: #e6e6e6;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    div.stButton > button:first-child {
-        background-color: #1f77b4;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        padding: 14px 28px;
-        border-radius: 10px;
-        transition: all 0.3s ease-in-out;
-        margin: 0 auto;
-        display: block;
-        width: 100%;
-        max-width: 300px;
+    
+    /* Main container */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
     }
+    
+    /* Mobile-first responsive design */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        /* Stack columns vertically on mobile */
+        [data-testid="column"] {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+        
+        /* Adjust header size for mobile */
+        h1 {
+            font-size: 24px !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        h3 {
+            font-size: 18px !important;
+        }
+        
+        /* Make inputs full width on mobile */
+        .stTextInput, .stNumberInput {
+            width: 100% !important;
+        }
+        
+        /* Adjust button for mobile */
+        div.stButton > button:first-child {
+            font-size: 16px !important;
+            padding: 12px 20px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 10px 0 !important;
+        }
+        
+        /* Adjust table for mobile */
+        table {
+            width: 100% !important;
+            font-size: 14px !important;
+            margin: 10px 0 !important;
+        }
+        
+        th, td {
+            padding: 8px 12px !important;
+            text-align: center !important;
+        }
+        
+        /* Make highlight boxes smaller */
+        .highlight {
+            padding: 15px !important;
+            margin: 10px 0 !important;
+        }
+        
+        .big-font {
+            font-size: 24px !important;
+            padding: 15px !important;
+        }
+        
+        /* Adjust Lottie animation for mobile */
+        .lottie-container {
+            height: 100px !important;
+        }
+    }
+    
+    /* Desktop styles */
+    @media (min-width: 769px) {
+        div.stButton > button:first-child {
+            background-color: #1f77b4;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 14px 28px;
+            border-radius: 10px;
+            transition: all 0.3s ease-in-out;
+            margin: 0 auto;
+            display: block;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        table {
+            width: 90% !important;
+            margin: 20px auto !important;
+            border-collapse: separate !important;
+            border-spacing: 0 12px !important;
+            font-size: 18px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .big-font {
+            font-size: 32px !important;
+        }
+    }
+    
+    /* Common styles for all devices */
     div.stButton > button:first-child:hover {
         background-color: #00b386;
         transform: scale(1.05);
     }
+    
     .big-font {
-        font-size: 32px !important;
         font-weight: bold;
         color: #00ffcc;
+        text-align: center;
     }
+    
     .highlight {
         background-color: #262730;
         padding: 20px;
         border-radius: 10px;
         border: 1px solid #404040;
         color: #e6e6e6;
+        margin: 15px 0;
     }
-    table {
-        width: 90% !important;
-        margin: 20px auto !important;
-        border-collapse: separate !important;
-        border-spacing: 0 12px !important;
-        font-size: 18px;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
+    
     thead tr {
         background-color: #1f77b4;
         color: white;
         font-weight: bold;
     }
+    
     tbody tr {
         background-color: #181c22;
         color: #e6e6e6;
         transition: background-color 0.3s ease;
     }
+    
     tbody tr:hover {
         background-color: #00b386;
         color: white;
         font-weight: bold;
     }
+    
     th, td {
         padding: 14px 24px;
         text-align: center;
+    }
+    
+    /* Input field labels */
+    .stTextInput label, .stNumberInput label {
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }
+    
+    /* Mobile-specific input improvements */
+    @media (max-width: 768px) {
+        .stTextInput input, .stNumberInput input {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+        }
     }
     </style>
 """, unsafe_allow_html=True)
 
 # --- Load and Clean Data ---
-df = pd.read_csv("newplayer.csv")
-df['Opposition'] = df['Opposition'].str.replace('v ', '', regex=False)
-df.dropna(inplace=True)
-df = df[df['Overs'] >= 5.0]
-df['Team Runs'] = df['Team Runs'].astype(str).str.replace('/', '.').astype(float, errors='ignore')
+@st.cache_data
+def load_data():
+    df = pd.read_csv("newplayer.csv")
+    df['Opposition'] = df['Opposition'].str.replace('v ', '', regex=False)
+    df.dropna(inplace=True)
+    df = df[df['Overs'] >= 5.0]
+    df['Team Runs'] = df['Team Runs'].astype(str).str.replace('/', '.').astype(float, errors='ignore')
+    return df
+
+df = load_data()
 
 # --- Helper: Exact Match Finder (case-insensitive) ---
 def find_best_match(user_input, valid_options):
@@ -108,9 +224,10 @@ if "bf" not in st.session_state:
 if "overs" not in st.session_state:
     st.session_state["overs"] = 0.0
 
-# --- UI ---
+# --- Responsive UI ---
 st.markdown("<h1 style='text-align: center;'>🏏 Cricket Player Run Predictor</h1>", unsafe_allow_html=True)
 
+# Use columns that stack on mobile
 col1, col2 = st.columns(2)
 with col1:
     player_input = st.text_input("🎯 Enter Player Name", value=st.session_state["player_input"], key="player_input")
@@ -120,9 +237,8 @@ with col2:
     overs = st.number_input("⏱️ Overs Played", min_value=0.0, step=0.1, format="%.2f", max_value=50.0, value=st.session_state["overs"], key="overs")
 
 # --- Centered Predict Button ---
-btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
-with btn_col2:
-    predict_clicked = st.button("🚀 Predict Runs", use_container_width=True)
+st.markdown("<br>", unsafe_allow_html=True)  # Add some spacing
+predict_clicked = st.button("🚀 Predict Runs", use_container_width=True)
 
 # --- Prediction Logic with Validation ---
 if predict_clicked:
@@ -162,7 +278,7 @@ if predict_clicked:
             loading_placeholder = st.empty()
             with loading_placeholder.container():
                 st.markdown("<h3 style='text-align: center;'>🔄 Analyzing Match Data... Please Wait</h3>", unsafe_allow_html=True)
-                st.markdown("<div style='display: flex; justify-content: center;'>", unsafe_allow_html=True)
+                st.markdown("<div class='lottie-container' style='display: flex; justify-content: center;'>", unsafe_allow_html=True)
                 st_lottie(lottie_animation, speed=1, loop=True, height=150, key="animation")
                 st.markdown("</div>", unsafe_allow_html=True)
                 time.sleep(3)
@@ -189,6 +305,8 @@ if predict_clicked:
             # --- Show Results ---
             st.markdown("---")
             st.markdown("### 📋 Match Input Summary", unsafe_allow_html=True)
+            
+            # Use a simpler table display for mobile
             result_data = {
                 "Player": [matched_player],
                 "Opposition": [matched_oppo],
@@ -196,8 +314,34 @@ if predict_clicked:
                 "Overs Played": [overs],
                 "Predicted Runs": [predicted_runs]
             }
-            st.table(pd.DataFrame(result_data))
+            
+            # Display as a styled dataframe for better mobile compatibility
+            result_df = pd.DataFrame(result_data)
+            st.dataframe(result_df, use_container_width=True, hide_index=True)
+            
+            # Alternative: Display as metrics for mobile
+            st.markdown("---")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Player", matched_player)
+            with col2:
+                st.metric("Opposition", matched_oppo)
+            with col3:
+                st.metric("Balls Faced", bf)
+            
+            col4, col5 = st.columns(2)
+            with col4:
+                st.metric("Overs Played", overs)
+            with col5:
+                st.metric("Predicted Runs", predicted_runs)
 
             st.markdown(f"<div class='highlight big-font' style='text-align: center;'>🏆 Predicted Score: {predicted_runs} Runs</div>", unsafe_allow_html=True)
 
-           
+# --- Mobile-friendly footer ---
+st.markdown("---")
+st.markdown(
+    "<div style='text-align: center; font-size: 14px; color: #888; padding: 20px;'>"
+    "Optimized for mobile and desktop devices | Cricket Analytics"
+    "</div>", 
+    unsafe_allow_html=True
+)
