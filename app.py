@@ -11,7 +11,7 @@ def load_lottiefile(filepath: str):
     with open(filepath, "r") as f:
         return json.load(f)
 
-lottie_animation = load_lottiefile("D:\\Project\\Cricket Player Prediction\\Animation.json")
+lottie_animation = load_lottiefile("Animation.json")
 
 # --- Page Config ---
 st.set_page_config(page_title="🏏 Cricket Player Run Predictor", layout="wide")
@@ -85,7 +85,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Load and Clean Data ---
-df = pd.read_csv("D:\\Project\\Cricket Player Prediction\\newplayer.csv")
+df = pd.read_csv("newplayer.csv")
 df['Opposition'] = df['Opposition'].str.replace('v ', '', regex=False)
 df.dropna(inplace=True)
 df = df[df['Overs'] >= 5.0]
